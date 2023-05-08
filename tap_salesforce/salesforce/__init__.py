@@ -293,7 +293,7 @@ class Salesforce():
                                         params=params,
                                         timeout=request_timeout,)
             elif http_method == "POST":
-                LOGGER.info("Making %s request to %s with body %s", http_method, url)
+                LOGGER.info("Making %s request to %s", http_method, url)
                 resp = self.session.post(url,
                                          headers=headers,
                                          data=body,
