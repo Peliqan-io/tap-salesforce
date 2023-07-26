@@ -398,6 +398,10 @@ def main_impl():
             catalog = args.properties
             state = build_state(args.state, catalog)
             do_sync(sf, catalog, state)
+        elif args.catalog:
+            catalog = args.catalog.to_dict()
+            state = build_state(args.state, catalog)
+            do_sync(sf, catalog, state)
     finally:
         if sf:
             if sf.rest_requests_attempted > 0:
