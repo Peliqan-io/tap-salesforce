@@ -35,6 +35,17 @@ FORCED_FULL_TABLE = {
     'UriEvent',
     'LogoutEvent',
     'ReportEvent',
+    'PermissionSetEventStore',
+    'ListViewEvent',
+    'IdentityProviderEventStore',
+    'ApiEvent',
+    'BulkApiResultEventStore',
+    'IdentityVerificationEvent',
+    'LoginAsEvent',
+    'FileEventStore',
+    'ExternalEncryptionRootKey',
+    'ActivityFieldHistory',
+    'PendingOrderSummary'
 }
 
 def get_replication_key(sobject_name, fields):
@@ -61,6 +72,17 @@ def build_state(raw_state, catalog):
 
     for catalog_entry in catalog['streams']:
         tap_stream_id = catalog_entry['tap_stream_id']
+
+        if tap_stream_id in FORCED_FULL_TABLE:
+            for metadata_entry in catalog_entry['metadata']:
+                if metadata_entry['breadcrumb'] == []:
+                    metadata_entry['metadata']['forced-replication-method'] = {
+                        'replication-method': 'FULL_TABLE',
+                        'reason': 'No valid replication keys found from the Salesforce API'
+                    }
+                    metadata_entry['metadata'].pop('replication-key', None)
+                    LOGGER.info("Forcing FULL_TABLE replication for %s", tap_stream_id)
+                    break
         catalog_metadata = metadata.to_map(catalog_entry['metadata'])
         replication_method = catalog_metadata.get((), {}).get('replication-method')
 
@@ -94,10 +116,10 @@ def build_state(raw_state, catalog):
     return state
 
 # pylint: disable=undefined-variable
-def create_property_schema(field, mdata):
+def create_property_schema(field, mdata, expected_pk_field):
     field_name = field['name']
 
-    if field_name == "Id":
+    if field_name == expected_pk_field:
         mdata = metadata.write(
             mdata, ('properties', field_name), 'inclusion', 'automatic')
     else:
@@ -108,6 +130,9 @@ def create_property_schema(field, mdata):
 
     return (property_schema, mdata)
 
+PK_OVERRIDES = {
+    "LightningUriEvent": "EventIdentifier",
+}
 
 # pylint: disable=too-many-branches,too-many-statements
 def do_discover(sf):
@@ -115,7 +140,6 @@ def do_discover(sf):
     global_description = sf.describe()
 
     objects_to_discover = {o['name'] for o in global_description['sobjects']}
-    key_properties = ['Id']
 
     sf_custom_setting_objects = []
     object_to_tag_references = {}
@@ -157,17 +181,18 @@ def do_discover(sf):
         properties = {}
         mdata = metadata.new()
 
-        found_id_field = False
+        found_expected_pk_field = False
+
+        expected_pk_field = PK_OVERRIDES.get(sobject_name, "Id")
 
         # Loop over the object's fields
         for f in fields:
             field_name = f['name']
 
-            if field_name == "Id":
-                found_id_field = True
+            if field_name == expected_pk_field:
+                found_expected_pk_field = True
 
-            property_schema, mdata = create_property_schema(
-                f, mdata)
+            property_schema, mdata = create_property_schema(f, mdata, expected_pk_field)
 
             # Compound Address fields and geolocations cannot be queried by the Bulk API
             if f['type'] in ("address", "location") and sf.api_type == tap_salesforce.salesforce.BULK_API_TYPE:
@@ -215,11 +240,11 @@ def do_discover(sf):
                         sobject_name,
                         ', '.join(sorted([k for k, _ in filtered_unsupported_fields])))
 
-        # Salesforce Objects are skipped when they do not have an Id field
-        if not found_id_field:
+        # Salesforce Objects are skipped when they do not have an expected pk field
+        if not found_expected_pk_field:
             LOGGER.info(
-                "Skipping Salesforce Object %s, as it has no Id field",
-                sobject_name)
+                "Skipping Salesforce Object %s, as it has no %s field",
+                sobject_name, expected_pk_field)
             continue
 
         # Any property added to unsupported_fields has metadata generated and
@@ -247,7 +272,7 @@ def do_discover(sf):
                     'replication-method': 'FULL_TABLE',
                     'reason': 'No replication keys found from the Salesforce API'})
 
-        mdata = metadata.write(mdata, (), 'table-key-properties', key_properties)
+        mdata = metadata.write(mdata, (), 'table-key-properties', [expected_pk_field])
 
         schema = {
             'type': 'object',
@@ -302,6 +327,10 @@ def do_sync(sf, catalog, state):
 
         if not stream_is_selected(mdata):
             LOGGER.info("%s: Skipping - not selected", stream_name)
+            continue
+
+        if stream_name in sf.get_blacklisted_objects():
+            LOGGER.info("%s: Skipping - blacklisted", stream_name)
             continue
 
         if starting_stream:

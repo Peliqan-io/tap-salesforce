@@ -1,42 +1,29 @@
 """
+Base class to use the new tap-tester framework
 Setup expectations for test sub classes
 Run discovery for as a prerequisite for most tests
 """
 import unittest
 import os
+import math
 from datetime import timedelta
 from datetime import datetime as dt
-
 from tap_tester import connections, menagerie, runner, LOGGER
-from tap_tester.base_case import BaseCase
+from tap_tester.base_suite_tests.base_case import BaseCase
 
-class SalesforceBaseTest(BaseCase):
+
+class SFBaseTest(BaseCase):
+
     """
-    Setup expectations for test sub classes.
-    Metadata describing streams.
-
-    A bunch of shared methods that are used in tap-tester tests.
-    Shared tap-specific methods (as needed).
-
-    FUTURE WORK
-      custom fields | https://stitchdata.atlassian.net/browse/SRCE-4813
-      bookmarks     | https://stitchdata.atlassian.net/browse/SRCE-4814
-      REST API      | https://stitchdata.atlassian.net/browse/SRCE-4815
-      timing        | https://stitchdata.atlassian.net/browse/SRCE-4816
-      more data     | https://stitchdata.atlassian.net/browse/SRCE-4824
+    Set these variables for the properties to use in the other tests
     """
-    AUTOMATIC_FIELDS = "automatic"
-    REPLICATION_KEYS = "valid-replication-keys"
-    PRIMARY_KEYS = "table-key-properties"
-    FOREIGN_KEYS = "table-foreign-key-properties"
-    REPLICATION_METHOD = "forced-replication-method"
-    API_LIMIT = "max-row-limit"
-    INCREMENTAL = "INCREMENTAL"
-    FULL_TABLE = "FULL_TABLE"
-    START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z"
-    BOOKMARK_COMPARISON_FORMAT = "%Y-%m-%dT00:00:00.000000Z"
-    start_date = ""
-    salesforce_api = ""
+
+    salesforce_api = "BULK"
+    total_quota = '95'
+    per_run_quota = None
+    # default start date which can be overridden in the tests
+    start_date = '2000-11-23T00:00:00Z'
+    partitioned_streams = {}
 
     @staticmethod
     def tap_name():
@@ -48,25 +35,18 @@ class SalesforceBaseTest(BaseCase):
         """the expected url route ending"""
         return "platform.salesforce"
 
-    def get_properties(self, original: bool = True):
+    def get_properties(self):
         """Configuration properties required for the tap."""
-        return_value = {
-            'start_date': '2020-11-23T00:00:00Z',
+
+        return {
+            'start_date': self.start_date,
             'instance_url': 'https://singer2-dev-ed.my.salesforce.com',
             'select_fields_by_default': 'true',
-            'quota_percent_total': '95',
+            'quota_percent_total': self.total_quota,
+            'quota_percent_per_run' : self.per_run_quota,
             'api_type': self.salesforce_api,
             'is_sandbox': 'false'
         }
-
-        if original:
-            return return_value
-
-        # This test needs the new connections start date to be larger than the default
-        assert self.start_date > return_value["start_date"]
-
-        return_value["start_date"] = self.start_date
-        return return_value
 
     @staticmethod
     def get_credentials():
@@ -75,33 +55,43 @@ class SalesforceBaseTest(BaseCase):
                 'client_id': os.getenv('TAP_SALESFORCE_CLIENT_ID'),
                 'client_secret': os.getenv('TAP_SALESFORCE_CLIENT_SECRET')}
 
-    def expected_metadata(self):
+    @classmethod
+    def expected_stream_names(cls):
+        """A set of expected stream names"""
+        streams = set(cls.expected_metadata().keys())
+
+        if cls.salesforce_api == 'BULK':
+            return streams.difference(cls.rest_only_streams())
+        return streams
+
+    @staticmethod
+    def expected_metadata():
         """The expected streams and metadata about the streams"""
         default = {
-            self.PRIMARY_KEYS: {"Id"},
-            self.REPLICATION_METHOD: self.INCREMENTAL,
-            self.REPLICATION_KEYS: {"SystemModstamp"}
+            BaseCase.PRIMARY_KEYS: {"Id"},
+            BaseCase.REPLICATION_METHOD: BaseCase.INCREMENTAL,
+            BaseCase.REPLICATION_KEYS: {"SystemModstamp"}
         }
         default_full = {
-            self.PRIMARY_KEYS: {"Id"},
-            self.REPLICATION_METHOD: self.FULL_TABLE,
+            BaseCase.PRIMARY_KEYS: {"Id"},
+            BaseCase.REPLICATION_METHOD: BaseCase.FULL_TABLE,
         }
 
         incremental_created_date = {
-            self.REPLICATION_KEYS: {'CreatedDate'},
-            self.PRIMARY_KEYS: {'Id'},
-            self.REPLICATION_METHOD: self.INCREMENTAL,
+            BaseCase.REPLICATION_KEYS: {'CreatedDate'},
+            BaseCase.PRIMARY_KEYS: {'Id'},
+            BaseCase.REPLICATION_METHOD: BaseCase.INCREMENTAL,
         }
 
         incremental_last_modified = {
-            self.PRIMARY_KEYS: {'Id'},
-            self.REPLICATION_KEYS: {'LastModifiedDate'},
-            self.REPLICATION_METHOD: self.INCREMENTAL,
+            BaseCase.PRIMARY_KEYS: {'Id'},
+            BaseCase.REPLICATION_KEYS: {'LastModifiedDate'},
+            BaseCase.REPLICATION_METHOD: BaseCase.INCREMENTAL,
         }
 
         lightning_uri_event_full = {
-            self.PRIMARY_KEYS: {"EventIdentifier"},
-            self.REPLICATION_METHOD: self.FULL_TABLE,
+            BaseCase.PRIMARY_KEYS: {"EventIdentifier"},
+            BaseCase.REPLICATION_METHOD: BaseCase.FULL_TABLE,
         }
 
         return {
@@ -431,7 +421,7 @@ class SalesforceBaseTest(BaseCase):
             'Holiday': default,
             'IPAddressRange': default,  # new
             'Idea': default,
-            'IdentityProviderEventStore': default_full,  # new
+            'IdentityProviderEventStore': incremental_created_date,  # new
             'IdentityVerificationEvent': default_full,  # new
             'IdpEventLog': default_full,  # new
             'IframeWhiteListUrl': default,
@@ -490,10 +480,11 @@ class SalesforceBaseTest(BaseCase):
             'LoginAsEvent': default_full,  # new
             'LoginEvent': default_full,  # new
             'LoginGeo': default,  # new
-            'LoginHistory': {self.PRIMARY_KEYS: {'Id'}, self.REPLICATION_KEYS: {'LoginTime'},self.REPLICATION_METHOD: self.INCREMENTAL,},
+            'LoginHistory': {BaseCase.PRIMARY_KEYS: {'Id'}, BaseCase.REPLICATION_KEYS:
+                             {'LoginTime'},BaseCase.REPLICATION_METHOD: BaseCase.INCREMENTAL,},
             'LoginIp': incremental_created_date,
             'LogoutEvent': default_full,  # new
-            # 'MLField': default,  # removed 6/13/2022 added 7/10/2022, removed 06/12/2023
+            # 'MLField': default,  # removed # 6/13/2022 added back 7/10/2022, removed 06/12/2023
             'MLPredictionDefinition': default,  # removed # 6/13/2022 added back 7/10/2022
             'Macro': default,
             'MacroHistory': incremental_created_date,
@@ -1098,10 +1089,11 @@ class SalesforceBaseTest(BaseCase):
             'ExtlClntAppOauthSetAttr': default,
             'LocationShippingCarrierMethod': default,
             'DeliveryEstimationSetupHistory': incremental_created_date
-
         }
 
-    def rest_only_streams(self):
+
+    @staticmethod
+    def rest_only_streams():
         """A group of streams that is only discovered when the REST API is in use."""
         return {
             'CaseStatus',
@@ -1123,196 +1115,12 @@ class SalesforceBaseTest(BaseCase):
             'UndecidedEventRelation',
         }
 
-    def expected_streams(self):
+    def expected_stream_names(self):
         """A set of expected stream names"""
         streams = set(self.expected_metadata().keys())
-
         if self.salesforce_api == 'BULK':
             return streams.difference(self.rest_only_streams())
         return streams
-
-    def child_streams(self):
-        """
-        Return a set of streams that are child streams
-        based on having foreign key metadata
-        """
-        return {stream for stream, metadata in self.expected_metadata().items()
-                if metadata.get(self.FOREIGN_KEYS)}
-
-    def expected_primary_keys(self):
-        """
-        return a dictionary with key of table name
-        and value as a set of primary key fields
-        """
-        return {table: properties.get(self.PRIMARY_KEYS, set())
-                for table, properties
-                in self.expected_metadata().items()}
-
-    def expected_replication_keys(self):
-        """
-        return a dictionary with key of table name
-        and value as a set of replication key fields
-        """
-        return {table: properties.get(self.REPLICATION_KEYS, set())
-                for table, properties
-                in self.expected_metadata().items()}
-
-    def expected_foreign_keys(self):
-        """
-        return a dictionary with key of table name
-        and value as a set of foreign key fields
-        """
-        return {table: properties.get(self.FOREIGN_KEYS, set())
-                for table, properties
-                in self.expected_metadata().items()}
-
-
-    def expected_automatic_fields(self):
-        auto_fields = {}
-        for k, v in self.expected_metadata().items():
-            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()) | v.get(self.REPLICATION_KEYS, set()) \
-                | v.get(self.FOREIGN_KEYS, set())
-        return auto_fields
-
-    def expected_replication_method(self):
-        """return a dictionary with key of table name nd value of replication method"""
-        return {table: properties.get(self.REPLICATION_METHOD, None)
-                for table, properties
-                in self.expected_metadata().items()}
-
-    def setUp(self):
-        """Verify that you have set the prerequisites to run the tap (creds, etc.)"""
-        missing_envs = [x for x in ['TAP_SALESFORCE_CLIENT_ID',
-                                    'TAP_SALESFORCE_CLIENT_SECRET',
-                                    'TAP_SALESFORCE_REFRESH_TOKEN']
-                        if os.getenv(x) is None]
-
-        if missing_envs:
-            raise Exception("set environment variables")
-
-    #########################
-    #   Helper Methods      #
-    #########################
-
-    def run_and_verify_check_mode(self, conn_id):
-        """
-        Run the tap in check mode and verify it succeeds.
-        This should be ran prior to field selection and initial sync.
-
-        Return the connection id and found catalogs from menagerie.
-        """
-        # run in check mode
-        check_job_name = runner.run_check_mode(self, conn_id)
-
-        # verify check exit codes
-        exit_status = menagerie.get_exit_status(conn_id, check_job_name)
-        menagerie.verify_check_exit_status(self, exit_status, check_job_name)
-
-        found_catalogs = menagerie.get_catalogs(conn_id)
-        self.assertGreater(len(found_catalogs), 0, msg="unable to locate schemas for connection {}".format(conn_id))
-
-        return found_catalogs
-
-    def run_and_verify_sync(self, conn_id):
-        """
-        Run a sync job and make sure it exited properly.
-        Return a dictionary with keys of streams synced
-        and values of records synced for each stream
-        """
-        # Run a sync job using orchestrator
-        sync_job_name = runner.run_sync_mode(self, conn_id)
-
-        # Verify tap and target exit codes
-        exit_status = menagerie.get_exit_status(conn_id, sync_job_name)
-        menagerie.verify_sync_exit_status(self, exit_status, sync_job_name)
-
-        # Verify actual rows were synced
-        sync_record_count = runner.examine_target_output_file(
-            self, conn_id, self.expected_streams(), self.expected_primary_keys())
-        self.assertGreater(
-            sum(sync_record_count.values()), 0,
-            msg="failed to replicate any data: {}".format(sync_record_count)
-        )
-        LOGGER.info("total replicated row count: %s", sum(sync_record_count.values()))
-
-        return sync_record_count
-
-    def perform_and_verify_table_and_field_selection(self,
-                                                     conn_id,
-                                                     test_catalogs,
-                                                     select_all_fields=True):
-        """
-        Perform table and field selection based off of the streams to select
-        set and field selection parameters.
-
-        Verify this results in the expected streams selected and all or no
-        fields selected for those streams.
-        """
-
-        # Select all available fields or select no fields from all testable streams
-        self.select_all_streams_and_fields(
-            conn_id=conn_id, catalogs=test_catalogs, select_all_fields=select_all_fields
-        )
-
-        catalogs = menagerie.get_catalogs(conn_id)
-
-        # Ensure our selection affects the catalog
-        expected_selected = [tc.get('tap_stream_id') for tc in test_catalogs]
-        for cat in catalogs:
-            catalog_entry = menagerie.get_annotated_schema(conn_id, cat['stream_id'])
-
-            # Verify all testable streams are selected
-            selected = catalog_entry.get('annotated-schema').get('selected')
-            LOGGER.info("Validating selection on %s: %s", cat['stream_name'], selected)
-            if cat['stream_name'] not in expected_selected:
-                self.assertFalse(selected, msg="Stream selected, but not testable.")
-                continue # Skip remaining assertions if we aren't selecting this stream
-            self.assertTrue(selected, msg="Stream not selected.")
-
-            if select_all_fields:
-                # Verify all fields within each selected stream are selected
-                for field, field_props in catalog_entry.get('annotated-schema').get('properties').items():
-                    field_selected = field_props.get('selected')
-                    LOGGER.info("\tValidating selection on %s.%s: %s",
-                                cat['stream_name'], field, field_selected)
-                    self.assertTrue(field_selected, msg="Field not selected.")
-            else:
-                # Verify only automatic fields are selected
-                expected_automatic_fields = self.expected_automatic_fields().get(cat['tap_stream_id'])
-                selected_fields = self.get_selected_fields_from_metadata(catalog_entry['metadata'])
-                self.assertEqual(expected_automatic_fields, selected_fields)
-
-    @staticmethod
-    def get_selected_fields_from_metadata(metadata):
-        selected_fields = set()
-        for field in metadata:
-            is_field_metadata = len(field['breadcrumb']) > 1
-            if field['metadata'].get('inclusion') is None and is_field_metadata:  # BUG_SRCE-4313 remove when addressed
-                LOGGER.info("Error %s has no inclusion key in metadata", field)  # BUG_SRCE-4313 remove when addressed
-                continue  # BUG_SRCE-4313 remove when addressed
-            inclusion_automatic_or_selected = (
-                field['metadata']['selected'] is True or \
-                field['metadata']['inclusion'] == 'automatic'
-            )
-            if is_field_metadata and inclusion_automatic_or_selected:
-                selected_fields.add(field['breadcrumb'][1])
-        return selected_fields
-
-
-    @staticmethod
-    def select_all_streams_and_fields(conn_id, catalogs, select_all_fields: bool = True):
-        """Select all streams and all fields within streams"""
-        for catalog in catalogs:
-            schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
-
-            non_selected_properties = []
-            if not select_all_fields:
-                # get a list of all properties so that none are selected
-                non_selected_properties = schema.get('annotated-schema', {}).get(
-                    'properties', {}).keys()
-
-            connections.select_catalog_and_fields_via_metadata(
-                conn_id, catalog, schema, [], non_selected_properties)
 
     def set_replication_methods(self, conn_id, catalogs, replication_methods):
 
@@ -1324,56 +1132,182 @@ class SalesforceBaseTest(BaseCase):
 
             if replication_method == self.INCREMENTAL:
                 replication_key = list(replication_keys.get(catalog['stream_name']))[0]
-                replication_md = [{ "breadcrumb": [], "metadata": {'replication-key': replication_key, "replication-method" : replication_method, "selected" : True}}]
+                replication_md = [{ "breadcrumb": [],
+                                    "metadata": {'replication-key': replication_key,
+                                                 "replication-method" : replication_method, "selected" : True}}]
             else:
-                replication_md = [{ "breadcrumb": [], "metadata": {'replication-key': None, "replication-method" : "FULL_TABLE", "selected" : True}}]
+                replication_md = [{ "breadcrumb": [],
+                                    "metadata": {'replication-key': None,
+                                                 "replication-method" : "FULL_TABLE", "selected" : True}}]
 
             connections.set_non_discoverable_metadata(
                 conn_id, catalog, menagerie.get_annotated_schema(conn_id, catalog['stream_id']), replication_md)
 
+    @classmethod
+    def setUpClass(cls):
+        """Verify that you have set the prerequisites to run the tap (creds, etc.)"""
+        missing_envs = [x for x in ['TAP_SALESFORCE_CLIENT_ID',
+                                    'TAP_SALESFORCE_CLIENT_SECRET',
+                                    'TAP_SALESFORCE_REFRESH_TOKEN']
+                        if os.getenv(x) is None]
+
+        if missing_envs:
+            raise Exception("set environment variables")
+
+    def get_custom_fields(self, found_catalogs, conn_id):
+        """ List all the custom_fields for each stream"""
+        custom_fields = {}
+        for catalog in found_catalogs:
+                schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])["annotated-schema"]
+                stream = catalog['stream_name']
+                custom_fields[stream] = {key for key in schema['properties'].keys()
+                                         if key.endswith("__c")}
+        return custom_fields
+
+    def get_non_custom_fields(self, found_catalogs, conn_id):
+        """ List all the non_custom_fields for each stream"""
+        non_custom_fields = {}
+        for stream in self.streams_to_test():
+                catalog = [catalog for catalog in found_catalogs
+                           if catalog["stream_name"] == stream][0]
+                schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])["annotated-schema"]
+                non_custom_fields[stream] = {key for key in schema['properties'].keys()
+                                             if not key.endswith("__c")
+                                             and schema['properties'][key]['inclusion'] != "unsupported"}
+        return non_custom_fields
+
+    def get_select_by_default_fields(self, found_catalogs, conn_id):
+        """ List all the selected_by_default fields for each stream"""
+
+        select_by_default_fields = {}
+        other_fields = {}
+        for catalog in found_catalogs:
+                schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])['metadata']
+                stream = catalog['stream_name']
+                select_by_default_fields[stream] = {item['breadcrumb'][-1] for item in schema
+                                                    if item['breadcrumb'] != [] and
+                                                    item['metadata'].get('selected-by-default') == True}
+        return select_by_default_fields
+
     @staticmethod
-    def parse_date(date_value):
-        """
-        Pass in string-formatted-datetime, parse the value, and return it as an unformatted datetime object.
-        """
-        try:
-            date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.%fZ")
-            return date_stripped
-        except ValueError:
-            try:
-                date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%SZ")
-                return date_stripped
-            except ValueError:
-                try:
-                    date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S.%f+00:00")
-                    return date_stripped
-                except ValueError:
-                    try:
-                        date_stripped = dt.strptime(date_value, "%Y-%m-%dT%H:%M:%S+00:00")
-                        return date_stripped
-                    except ValueError as e_final:
-                        raise NotImplementedError("We are not accounting for dates of this format: {}".format(date_value)) from e_final
+    def count_custom_non_custom_fields(fields):
+        custom = 0
+        non_custom =0
+        for field in fields:
+            if not field.endswith("__c"):
+                non_custom += 1
+            else:
+                custom += 1
+        return (custom, non_custom)
 
-    def timedelta_formatted(self, dtime, days=0):
-        try:
-            date_stripped = dt.strptime(dtime, self.START_DATE_FORMAT)
-            return_date = date_stripped + timedelta(days=days)
+    @staticmethod
+    def get_streams_with_data():
+        #the streams listed here are the streams that have data currently
+        streams_with_data = {
+             'ActiveFeatureLicenseMetric',
+             'AppMenuItem',
+             'AuthSession',
+             'Account',
+             'Calendar',
+             'AppointmentSchedulingPolicy',
+             'Campaign',
+             'AssignmentRule',
+             'ActivePermSetLicenseMetric',
+             'AppDefinition',
+             'BusinessHours',
+             'ActiveProfileMetric',
+             'Calendar',
+             'ContentWorkspacePermission',
+             'CampaignMemberStatus',
+             'Community',
+             'Contact',
+             'Case',
+             'ClientBrowser',
+             'BusinessHours',
+             'ContentWorkspace',
+             'Campaign',
+             'FieldPermissions',
+             'Group',
+             'EventLogFile',
+             'FiscalYearSettings',
+             'ListView',
+             'LoginHistory',
+             'LeadStatus',
+             'Lead',
+             'LoginIp',
+             'FileSearchActivity',
+             'FormulaFunctionCategory',
+             'Folder',
+             'MatchingRule',
 
-            return dt.strftime(return_date, self.START_DATE_FORMAT)
+            #  removing form the list has not getting any data
+            #  'LightningUsageByFlexiPageMetrics',
+            #  'LightningUsageByAppTypeMetrics',
+            #  'LightningUsageByBrowserMetrics',
+            #  'LightningUsageByPageMetrics',
+            #  'LightningToggleMetrics',
+            #  'LightningExitByPageMetrics',
 
-        except ValueError:
-            try:
-                date_stripped = dt.strptime(dtime, self.BOOKMARK_COMPARISON_FORMAT)
-                return_date = date_stripped + timedelta(days=days)
-
-                return dt.strftime(return_date, self.BOOKMARK_COMPARISON_FORMAT)
-
-            except ValueError:
-                return Exception("Datetime object is not of the format: {}".format(self.START_DATE_FORMAT))
-
-    ##########################################################################
-    ### Tap Specific Methods
-    ##########################################################################
+             'LoginGeo',
+             'FlowDefinitionView',
+             'PermissionSetTabSetting',
+             'MilestoneType',
+             'Period',
+             'MatchingRule',
+             'OpportunityStage',
+             'PlatformEventUsageMetric',
+             'Organization',
+             'OpportunityHistory',
+             'Pricebook2',
+             'PermissionSetLicense',
+             'ObjectPermissions',
+             'Opportunity',
+             'PermissionSetAssignment',
+             'OauthToken',
+             'PricebookEntry',
+             'Profile',
+             'PermissionSet',
+             'Product2',
+             'PromptAction',
+             'SetupEntityAccess',
+             'Profile',
+             'Publisher',
+             'ServiceSetupProvisioning',
+             'Report',
+             'Solution',
+             'PromptActionShare',
+             'SlaProcess',
+             'SetupAuditTrail',
+             'UiFormulaRule',
+             'WebLink',
+             'UserPermissionAccess',
+             'UserRole',
+             'TabDefinition',
+             'UserLogin',
+             'UserAppMenuItem',
+             'TenantUsageEntitlement',
+             'UserLicense',
+             'User',
+             'TapTester__c',
+             'SlaProcess',
+             'UserAppInfo',
+             'UiFormulaCriterion',
+             'Solution',
+             'FieldPermissions',
+             'EntityDefinition',
+             'ContentWorkspace',
+             'DuplicateRule',
+             'CronTrigger',
+             'Domain',
+             'ContentWorkspacePermission',
+             'EmailTemplate',
+             'EventLogFile',
+             'CronJobDetail',
+             'Entitlement',
+             'FlowRecordVersion',
+             'FlowRecord'
+        }
+        return streams_with_data
 
     @staticmethod
     def get_unsupported_by_rest_api():
@@ -1440,6 +1374,56 @@ class SalesforceBaseTest(BaseCase):
 
         return unsupported_streams_bulk_only | unsupported_streams_rest
 
+    def get_full_table_streams(self):
+        full_table_streams = {
+            'EventBusSubscriber',
+            'ContentFolderLink',
+            'TabDefinition',
+            'ReportEvent',
+            'FormulaFunctionCategory',
+            'UserSetupEntityAccess',
+            'AuraDefinitionBundleInfo',
+            'DatacloudAddress',
+            'ContentTagSubscription',
+            'FeedAttachment',
+            'EmbeddedServiceDetail',
+            'UriEvent',
+            'DashboardComponent',
+            'RecentlyViewed',
+            'IdpEventLog',
+            'PlatformEventUsageMetric',
+            'LightningUriEvent',
+            'CronJobDetail',
+            'EmbeddedServiceLabel',
+            'ContentDocumentSubscription',
+            'ThirdPartyAccountLink',
+            'ContentUserSubscription',
+            'LogoutEvent',
+            'ContentWorkspaceSubscription',
+            'LoginEvent',
+            'DatacloudContact',
+            'SalesStore',
+            'DatacloudCompany',
+            'ApexPageInfo'
+        }
+        return full_table_streams
+
+    def get_custom_fields_streams(self):
+        custom_field_streams = {
+            'Account',
+            'Case',
+            'Contact',
+            'Lead',
+            'Opportunity',
+            'TapTester__c',
+        }
+        return custom_field_streams
+
+    def switchable_streams(self):
+        streams = self.expected_stream_names().difference(self.get_full_table_streams())
+        final_list = streams.intersection(self.get_streams_with_data())
+        return final_list
+
     def is_unsupported_by_rest_api(self, stream):
         """returns True if stream is unsupported by REST API"""
 
@@ -1453,3 +1437,33 @@ class SalesforceBaseTest(BaseCase):
         in addition does not support the streams listed below.
         """
         return stream in self.get_unsupported_by_bulk_api()
+
+    def partition_streams(self,list_of_streams):
+
+        weekday = dt.weekday(dt.now())  # weekdays 0-6, Mon-Sun
+        partition_size = math.ceil(len(list_of_streams)/7)
+
+        # if partition_size increases in a given week the start of subsequent slices will be pushed
+        #   forward allowing for skipped streams, buffer start by 15 to help prevent this
+        start_of_slice = max(partition_size * weekday - 15, 0)
+        end_of_slice = min(partition_size * (weekday + 1), len(list_of_streams))
+        sorted_streams = sorted(list_of_streams)
+
+        LOGGER.info("Using weekday based subset of found_catalogs, weekday = %s", weekday)
+
+        # select certain... catalogs
+        if self.salesforce_api == 'BULK':
+            self.partitioned_streams = {stream
+                                        for stream in sorted_streams[start_of_slice:end_of_slice]
+                                        if not self.is_unsupported_by_bulk_api(stream)}
+        else:
+            self.partitioned_streams = {stream
+                                        for stream in sorted_streams[start_of_slice:end_of_slice]
+                                        if not self.is_unsupported_by_rest_api(stream)}
+
+        return self.partitioned_streams
+
+    def streams_to_test(self):
+        if self.partitioned_streams:
+            return self.partitioned_streams
+        return self.partition_streams(self.get_streams_with_data())

@@ -104,15 +104,15 @@ def sync_stream(sf, catalog_entry, state):
             sync_records(sf, catalog_entry, state, counter)
             singer.write_state(state)
         except RequestException as ex:
-            raise Exception("{} Response: {}, (Stream: {})".format(
-                ex, ex.response.text, stream)) from ex
+            LOGGER.critical("{} Response: {}, (Stream: {})".format(
+                ex, ex.response.text, stream))
         except Exception as ex:
             if "OPERATION_TOO_LARGE: exceeded 100000 distinct who/what's" in str(ex):
                 raise SingerSyncError("OPERATION_TOO_LARGE: exceeded 100000 distinct who/what's. " +
                                       "Consider asking your Salesforce System Administrator to provide you with the " +
                                       "`View All Data` profile permission. (Stream: {})".format(stream)) from ex
-            raise Exception("{}, (Stream: {})".format(
-                ex, stream)) from ex
+            LOGGER.critical("{}, (Stream: {})".format(
+                ex, stream))
 
         return counter
 
@@ -197,7 +197,7 @@ def fix_record_anytype(rec, schema):
             val = try_cast(v, int)
             val = try_cast(v, float)
             if v in ["true", "false"]:
-                val = (v == "true")
+                val = (v == "true")  # pylint: disable=superfluous-parens
 
             if v == "":
                 val = None
