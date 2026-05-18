@@ -1,0 +1,1130 @@
+{
+  "Account": {
+    "additionalProperties": false,
+    "properties": {
+      "AccountNumber": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "AccountSource": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Active__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "AnnualRevenue": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "BillingAddress": {
+        "properties": {
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "geocodeAccuracy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "postalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "BillingCity": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "BillingCountry": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "BillingGeocodeAccuracy": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "BillingLatitude": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "BillingLongitude": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "BillingPostalCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "BillingState": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "BillingStreet": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "CleanStatus": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "CreatedById": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "CreatedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "CustomerPriority__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "DandbCompanyId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Description": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "DunsNumber": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Fax": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Id": {
+        "type": "string"
+      },
+      "Industry": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "IsDeleted": {
+        "type": [
+          "null",
+          "boolean"
+        ]
+      },
+      "Jigsaw": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "JigsawCompanyId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "LastActivityDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LastModifiedById": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "LastModifiedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LastReferencedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LastViewedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "MasterRecordId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "NaicsCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "NaicsDesc": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Name": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "NumberOfEmployees": {
+        "type": [
+          "null",
+          "integer"
+        ]
+      },
+      "NumberofLocations__c": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "OperatingHoursId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OwnerId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Ownership": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ParentId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Phone": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "PhotoUrl": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Rating": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "SLAExpirationDate__c": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "SLASerialNumber__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "SLA__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ShippingAddress": {
+        "properties": {
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "geocodeAccuracy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "postalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "ShippingCity": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ShippingCountry": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ShippingGeocodeAccuracy": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ShippingLatitude": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "ShippingLongitude": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "ShippingPostalCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ShippingState": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ShippingStreet": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Sic": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "SicDesc": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Site": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "SystemModstamp": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "TickerSymbol": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Tradestyle": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Type": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "UpsellOpportunity__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Website": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "YearStarted": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    },
+    "type": "object"
+  },
+  "Contact": {
+    "additionalProperties": false,
+    "properties": {
+      "AccountId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "AssistantName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "AssistantPhone": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Birthdate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "CleanStatus": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ContactCustomFieldPeliqan__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ContactSource": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "CreatedById": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "CreatedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "Department": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Description": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Email": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "EmailBouncedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "EmailBouncedReason": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Fax": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "FirstName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "HomePhone": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Id": {
+        "type": "string"
+      },
+      "IndividualId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "IsDeleted": {
+        "type": [
+          "null",
+          "boolean"
+        ]
+      },
+      "IsEmailBounced": {
+        "type": [
+          "null",
+          "boolean"
+        ]
+      },
+      "IsPriorityRecord": {
+        "type": [
+          "null",
+          "boolean"
+        ]
+      },
+      "Jigsaw": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "JigsawContactId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Languages__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "LastActivityDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LastCURequestDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LastCUUpdateDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LastModifiedById": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "LastModifiedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LastName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "LastReferencedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LastViewedDate": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "LeadSource": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Level__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "MailingAddress": {
+        "properties": {
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "geocodeAccuracy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "postalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "MailingCity": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "MailingCountry": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "MailingGeocodeAccuracy": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "MailingLatitude": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "MailingLongitude": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "MailingPostalCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "MailingState": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "MailingStreet": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "MasterRecordId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "MobilePhone": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Name": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OtherAddress": {
+        "properties": {
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "geocodeAccuracy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "postalCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "street": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "OtherCity": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OtherCountry": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OtherGeocodeAccuracy": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OtherLatitude": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "OtherLongitude": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "OtherPhone": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OtherPostalCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OtherState": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OtherStreet": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "OwnerId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "PeliqanCustomPicklist__c": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Phone": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "PhotoUrl": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "ReportsToId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "Salutation": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "SystemModstamp": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        ]
+      },
+      "Title": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    },
+    "type": "object"
+  }
+}
