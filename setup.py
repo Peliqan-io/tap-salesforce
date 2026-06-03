@@ -12,7 +12,7 @@ setup(name='tap-salesforce',
       install_requires=[
           'requests==2.31.0',
           'singer-python @ git+https://github.com/peliqan-io/singer-python@master',
-          'xmltodict==0.11.0'
+          'xmltodict>=0.13.0,<1.0'
       ],
       entry_points='''
           [console_scripts]
